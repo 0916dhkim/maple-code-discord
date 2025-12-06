@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx index.ts"
+    "dev": "tsx index.ts",
+    "deploy-commands": "tsx deploy-commands.ts"
   },
   "devDependencies": {
     "tsx": "^4.21.0",
