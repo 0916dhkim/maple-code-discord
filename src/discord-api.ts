@@ -1,6 +1,7 @@
 import z from "zod";
 import { env } from "./env.js";
 import { Channel, channelSchema, Message, messageSchema } from "./api-types.js";
+import { APIEmbed } from "discord.js";
 
 const baseUrl = "https://discord.com/api/v10";
 
@@ -108,21 +109,34 @@ function findArchiveCategory(allChannels: Channel[]): Channel | null {
   );
 }
 
-export async function collectAllArchivedChannelMessages() {
+export async function getChannelsCommandImpl() {
   const allChannels = await getAllChannels();
-  const archiveCategory = findArchiveCategory(allChannels);
+  const archive = findArchiveCategory(allChannels);
 
-  if (archiveCategory == null) {
-    throw new Error("Missing archive category");
+  if (archive == null) {
+    throw "No archive";
   }
 
-  const archivedChannels = findAllArchivedChannels(
-    allChannels,
-    archiveCategory.id
-  );
+  const archivedChannels = findAllArchivedChannels(allChannels, archive.id);
 
-  for (const channel of archivedChannels) {
-    const messages = await getAllMessagesFromChannel(channel.id);
-    console.log(`${channel.id} - ${messages.length} messages`);
-  }
+  const message: APIEmbed = {
+    title: "Server Summary",
+    color: 0xff0000,
+    fields: [
+      {
+        name: "📢 Total channels",
+        value: `\`${allChannels.length.toString()}\``,
+      },
+      {
+        name: "🆔 Archive channel ID",
+        value: `\`${archive.id}\``,
+      },
+      {
+        name: "🧮 Archived channel count",
+        value: `\`${archivedChannels.length.toString()}\``,
+      },
+    ],
+  };
+
+  return message;
 }
