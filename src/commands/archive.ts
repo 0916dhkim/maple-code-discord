@@ -8,9 +8,7 @@ export const archive: CommandSpec = {
     .setDescription("Back up chat history of archived channels"),
   run: async (interaction) => {
     await interaction.reply("Back up in progress...");
-    console.time("archive");
     const message = await archiveCommandImpl();
-    console.timeEnd("archive");
     await interaction.followUp({ embeds: [message] });
   },
 };
