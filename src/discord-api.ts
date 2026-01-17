@@ -2,6 +2,8 @@ import z from "zod";
 import { env } from "./env.js";
 import { Channel, channelSchema, Message, messageSchema } from "./api-types.js";
 import { APIEmbed } from "discord.js";
+import { db } from "./db/drizzle.js";
+import { channelTable } from "./db/schema.js";
 
 const baseUrl = "https://discord.com/api/v10";
 
@@ -148,11 +150,30 @@ export async function archiveCommandImpl() {
   if (archive == null) {
     throw "No archive";
   }
-
   const archivedChannels = findAllArchivedChannels(allChannels, archive.id);
   let messageCount = 0;
   for (const channel of archivedChannels) {
     const messages = await getAllMessagesFromChannel(channel.id);
+    console.log(`insert: Channel ${channel.name} (${channel.id}) has ${messages.length} messages.`);
+    await db.insert(
+      channelTable
+    ).values({
+      id: channel.id,
+      name: channel.name ?? "",
+      type: channel.type ?? "",
+      parentId: channel.parent_id,
+      messages: messages,
+    })
+    .onConflictDoUpdate({
+        target: channelTable.id,
+        set: {
+        name: channel.name ?? "",
+        type: channel.type ?? "",
+        parentId: channel.parent_id,
+        messages: messages
+      }
+    }
+    ); 
     messageCount += messages.length;
   }
 
