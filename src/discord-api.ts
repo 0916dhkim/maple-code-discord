@@ -10,7 +10,7 @@ const baseUrl = "https://discord.com/api/v10";
 
 async function requestDiscordApi<TSchema extends z.ZodType>(
   url: string,
-  schema: TSchema
+  schema: TSchema,
 ): Promise<z.infer<TSchema>> {
   const maxRetry = 5;
   for (let i = 0; i < maxRetry; i++) {
@@ -64,17 +64,17 @@ async function getAllChannels() {
 
 function findAllArchivedChannels(
   allChannels: Channel[],
-  archiveCategoryId: string
+  archiveCategoryId: string,
 ): Channel[] {
   return allChannels.filter(
     (channel) =>
       (channel.type === "TEXT" || channel.type === "VOICE") &&
-      channel.parent_id === archiveCategoryId
+      channel.parent_id === archiveCategoryId,
   );
 }
 
 async function getAllMessagesFromChannel(
-  channelId: string
+  channelId: string,
 ): Promise<Message[]> {
   const LIMIT = 10;
   const result: Message[] = [];
@@ -107,7 +107,7 @@ async function getAllMessagesFromChannel(
 function findArchiveCategory(allChannels: Channel[]): Channel | null {
   return (
     allChannels.find(
-      (channel) => channel.type === "CATEGORY" && channel.name === "archive"
+      (channel) => channel.type === "CATEGORY" && channel.name === "archive",
     ) ?? null
   );
 }
@@ -155,26 +155,27 @@ export async function archiveCommandImpl() {
   let messageCount = 0;
   for (const channel of archivedChannels) {
     const messages = await getAllMessagesFromChannel(channel.id);
-    console.log(`insert: Channel ${channel.name} (${channel.id}) has ${messages.length} messages.`);
-    await db.insert(
-      channelTable
-    ).values({
-      id: channel.id,
-      name: channel.name ?? "",
-      type: channel.type ?? "",
-      parentId: channel.parent_id,
-      messages: messages,
-    })
-    .onConflictDoUpdate({
-        target: channelTable.id,
-        set: {
+    console.log(
+      `insert: Channel ${channel.name} (${channel.id}) has ${messages.length} messages.`,
+    );
+    await db
+      .insert(channelTable)
+      .values({
+        id: channel.id,
         name: channel.name ?? "",
         type: channel.type ?? "",
         parentId: channel.parent_id,
-        messages: messages
-      }
-    }
-    ); 
+        messages: messages,
+      })
+      .onConflictDoUpdate({
+        target: channelTable.id,
+        set: {
+          name: channel.name ?? "",
+          type: channel.type ?? "",
+          parentId: channel.parent_id,
+          messages: messages,
+        },
+      });
     messageCount += messages.length;
   }
 
@@ -193,8 +194,8 @@ export async function archiveCommandImpl() {
 }
 
 export const readChannelCommandImpl = async (channelId: string) =>
-  db.select({ messages: channelTable.messages })
-.from(channelTable)
-.where(eq(channelTable.id, channelId))
-.limit(1);
-
+  db
+    .select({ messages: channelTable.messages })
+    .from(channelTable)
+    .where(eq(channelTable.id, channelId))
+    .limit(1);

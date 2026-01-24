@@ -1,6 +1,6 @@
 # Discord Bot
 
-Date Created:  6th December 2025
+Date Created: 6th December 2025
 
 The goal is to implement a Discord bot that automatically retrieves and aggregates all chat data from the Maple Code Discord server.
 
