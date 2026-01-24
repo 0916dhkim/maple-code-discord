@@ -3,6 +3,7 @@ import { env } from "./env.js";
 import { Channel, channelSchema, Message, messageSchema } from "./api-types.js";
 import { APIEmbed } from "discord.js";
 import { db } from "./db/drizzle.js";
+import { eq } from "drizzle-orm";
 import { channelTable } from "./db/schema.js";
 
 const baseUrl = "https://discord.com/api/v10";
@@ -190,3 +191,10 @@ export async function archiveCommandImpl() {
 
   return message;
 }
+
+export const readChannelCommandImpl = async (channelId: string) =>
+  db.select({ messages: channelTable.messages })
+.from(channelTable)
+.where(eq(channelTable.id, channelId))
+.limit(1);
+
