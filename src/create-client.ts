@@ -12,12 +12,12 @@ export async function createClient() {
     if (!interaction.isChatInputCommand()) return;
 
     const command = COMMAND_SPECS.find(
-      (spec) => spec.metadata.name === interaction.commandName
+      (spec) => spec.metadata.name === interaction.commandName,
     );
 
     if (!command) {
       console.error(
-        `No command matching ${interaction.commandName} was found.`
+        `No command matching ${interaction.commandName} was found.`,
       );
       return;
     }
