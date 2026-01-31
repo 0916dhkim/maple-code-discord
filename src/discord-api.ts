@@ -154,7 +154,7 @@ export async function archiveCommandImpl() {
   const archivedChannels = findAllArchivedChannels(allChannels, archive.id);
   let messageCount = 0;
   for (const channel of archivedChannels) {
-    const messages = await getAllMessagesFromChannel(channel.id);
+    const messages = (await getAllMessagesFromChannel(channel.id)).reverse();
     console.log(
       `insert: Channel ${channel.name} (${channel.id}) has ${messages.length} messages.`,
     );
