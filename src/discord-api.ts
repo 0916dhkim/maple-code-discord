@@ -3,7 +3,7 @@ import { env } from "./env.js";
 import { Channel, channelSchema, Message, messageSchema } from "./api-types.js";
 import { APIEmbed } from "discord.js";
 import { db } from "./db/drizzle.js";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import { channelTable } from "./db/schema.js";
 
 const baseUrl = "https://discord.com/api/v10";
@@ -199,3 +199,10 @@ export const readChannelCommandImpl = async (channelId: string) =>
     .from(channelTable)
     .where(eq(channelTable.id, channelId))
     .limit(1);
+
+
+export const listChannelsCommandImpl = async () =>
+  db
+  .select({id: channelTable.id, name: channelTable.name})
+  .from(channelTable)
+  .orderBy(asc(channelTable.name));
