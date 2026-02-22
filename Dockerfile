@@ -1,5 +1,5 @@
 # Build stage
-FROM node:22 AS builder
+FROM node:24-trixie-slim@sha256:1c78323e27e7aff8ac92377845119cd52ac3d3b22e197b3b14e8eb64af387f8c AS builder
 
 WORKDIR /app
 COPY . .
