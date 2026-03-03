@@ -7,9 +7,7 @@ export const clearQueue: CommandSpec = {
         .setName("clear-queue")
         .setDescription("Clear the queue of raised hands"),
     run: async (interaction) => {
-        clearQueueStorage();
-        interaction.reply("Queue cleared.");
-
-        interaction.user.username
+        await clearQueueStorage();
+        await interaction.reply("Queue cleared.");
     }
 }    

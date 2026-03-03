@@ -12,11 +12,14 @@ export const showRaisedHands: CommandSpec = {
         if (Object.keys(queue).length === 0) {
             await interaction.reply("No hands are currently raised.");
             return;
-        } else {
-            const queueString = Object.values(queue).sort((a, b) => a.time.localeCompare(b.time)).map((e) => e.nickname).join("\n");
-
-            await interaction.reply(queueString);
         }
+        
+        const queueString = Object.values(queue)
+            .sort((a, b) => a.time.localeCompare(b.time))
+            .map((e) => e.nickname)
+            .join("\n");
+
+        await interaction.reply(queueString);
   
     },
 }
