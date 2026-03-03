@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from "discord.js";
 import { CommandSpec } from "../command.js";
-import { readQueue } from "../services/storageService.js";
+import { readQueue } from "../services/raisedHandsService.js";
 
 
 export const showRaisedHands: CommandSpec = {
@@ -9,7 +9,7 @@ export const showRaisedHands: CommandSpec = {
         .setDescription("Show the list of users who have raised their hands"),
     run: async (interaction) => {
         const queue = await readQueue();
-        if (queue.length === 0) {
+        if (Object.keys(queue).length === 0) {
             await interaction.reply("No hands are currently raised.");
             return;
         } else {
