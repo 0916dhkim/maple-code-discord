@@ -3,6 +3,10 @@ import { getChannels } from "./commands/get-channels.js";
 import { readChannel } from "./commands/read-channel.js";
 import { ping } from "./commands/ping.js";
 import { listChannels } from "./commands/get-channels-list.js";
+import { showRaisedHands } from "./commands/show-raised-hands.js";
+import { clearQueue } from "./commands/clear-queue.js";
+import { raiseHand } from "./commands/raise-hand.js";
+import { lowerHand } from "./commands/lower-hand.js";
 
 /** List of all commands */
 export const COMMAND_SPECS = [
@@ -11,4 +15,8 @@ export const COMMAND_SPECS = [
   archive,
   readChannel,
   listChannels,
+  showRaisedHands,
+  clearQueue,
+  raiseHand,
+  lowerHand,
 ];
