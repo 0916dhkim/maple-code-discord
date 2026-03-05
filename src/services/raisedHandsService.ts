@@ -9,6 +9,7 @@ type QueueItem = {
 type Queue = Record<string, QueueItem>;
 
 const FILE_PATH = env.QUEUE_FILE_PATH;
+export const NO_RAISED_HANDS_MESSAGE = "No hands are currently raised.";
 
 export async function readQueue(): Promise<Queue> {
   try {
@@ -54,6 +55,18 @@ export async function removeFromQueue(userId: string): Promise<string> {
   delete queue[userId];
   await fs.writeFile(FILE_PATH, JSON.stringify(queue, null, 2));
   return "Your hand has been lowered.";
+}
+
+export async function getQueueDisplay(): Promise<string> {
+  const queue = await readQueue();
+  if (Object.keys(queue).length === 0) {
+    return NO_RAISED_HANDS_MESSAGE;
+  }
+
+  return Object.entries(queue)
+    .sort(([, a], [, b]) => a.time.localeCompare(b.time))
+    .map(([userId]) => `<@${userId}>`)
+    .join("\n");
 }
 
 function sanitizeQueueData(input: unknown): Queue {
