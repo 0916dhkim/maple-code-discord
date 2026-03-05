@@ -1,4 +1,5 @@
 import fs from "fs/promises";
+import { env } from "../env.js";
 
 type QueueItem = {
   nickname: string;
@@ -7,7 +8,7 @@ type QueueItem = {
 
 type Queue = Record<string, QueueItem>;
 
-const FILE_PATH = "src/data/queue.json";
+const FILE_PATH = env.QUEUE_FILE_PATH;
 
 export async function readQueue(): Promise<Queue> {
   try {

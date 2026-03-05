@@ -7,6 +7,7 @@ const envSchema = z.object({
   DISCORD_CLIENT_ID: z.string(),
   DISCORD_GUILD_ID: z.string(),
   DATABASE_URL: z.string(),
+  QUEUE_FILE_PATH: z.string().default("src/data/queue.json"),
 });
 
 export const env = envSchema.parse(process.env);
