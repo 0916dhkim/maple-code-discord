@@ -12,4 +12,4 @@ RUN npm run build
 
 # Run the compiled entry point
 ENV NODE_ENV=production
-CMD ["node", "dist/src/index.js"]
+CMD ["node", "--enable-source-maps", "dist/src/index.js"]
