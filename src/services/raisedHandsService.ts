@@ -1,4 +1,5 @@
 import fs from "fs/promises";
+import { env } from "../env.js";
 
 type QueueItem = {
   nickname: string;
@@ -7,7 +8,7 @@ type QueueItem = {
 
 type Queue = Record<string, QueueItem>;
 
-const FILE_PATH = "src/data/queue.json";
+const FILE_PATH = env.QUEUE_FILE_PATH;
 
 export async function readQueue(): Promise<Queue> {
   try {
@@ -26,7 +27,7 @@ export async function clearQueue(): Promise<void> {
 
 export async function addToQueue(
   userId: string,
-  username: string
+  username: string,
 ): Promise<string> {
   const queue = await readQueue();
 
@@ -43,9 +44,7 @@ export async function addToQueue(
   return "Your hand has been raised.";
 }
 
-export async function removeFromQueue(
-  userId: string
-): Promise<string> {
+export async function removeFromQueue(userId: string): Promise<string> {
   const queue = await readQueue();
 
   if (!queue[userId]) {
@@ -69,7 +68,8 @@ function sanitizeQueueData(input: unknown): Queue {
     if (!/^\d+$/.test(id)) continue;
 
     const item = obj[id];
-    if (typeof item !== "object" || item === null || Array.isArray(item)) continue;
+    if (typeof item !== "object" || item === null || Array.isArray(item))
+      continue;
 
     const it = item as Record<string, unknown>;
 
