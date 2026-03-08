@@ -144,6 +144,29 @@ export async function getChannelsCommandImpl() {
   return message;
 }
 
+async function deleteChannel(channelId: string): Promise<boolean> {
+  try {
+    const url = `${baseUrl}/channels/${channelId}`;
+    const res = await fetch(url, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bot ${env.DISCORD_TOKEN}`,
+      },
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      console.warn(
+        `Warning: Failed to delete channel ${channelId} (HTTP ${res.status}): ${body}`,
+      );
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.warn(`Warning: Failed to delete channel ${channelId}:`, e);
+    return false;
+  }
+}
+
 export async function archiveCommandImpl() {
   const allChannels = await getAllChannels();
   const archive = findArchiveCategory(allChannels);
@@ -153,6 +176,7 @@ export async function archiveCommandImpl() {
   }
   const archivedChannels = findAllArchivedChannels(allChannels, archive.id);
   let messageCount = 0;
+  let deletedCount = 0;
   for (const channel of archivedChannels) {
     const messages = (await getAllMessagesFromChannel(channel.id)).reverse();
     console.log(
@@ -177,6 +201,13 @@ export async function archiveCommandImpl() {
         },
       });
     messageCount += messages.length;
+
+    // Delete channel from Discord after successful DB write
+    const deleted = await deleteChannel(channel.id);
+    if (deleted) {
+      console.log(`Deleted channel ${channel.name} (${channel.id})`);
+      deletedCount++;
+    }
   }
 
   const message: APIEmbed = {
@@ -186,6 +217,10 @@ export async function archiveCommandImpl() {
       {
         name: "🧮 Total message count",
         value: `\`${messageCount.toString()}\``,
+      },
+      {
+        name: "🗑️ Channels deleted",
+        value: `\`${deletedCount} / ${archivedChannels.length}\``,
       },
     ],
   };
