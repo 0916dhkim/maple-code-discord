@@ -30,7 +30,7 @@ async function everything() {
     print("code ready");
 
     // 2. Exchange code for token (via your backend)
-    const res = await fetch("/api/token", {
+    const res = await fetch("/oauth2/token", {
       method: "POST",
       body: JSON.stringify({ code }),
     });
