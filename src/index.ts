@@ -12,9 +12,7 @@ async function startBot() {
   client.login(env.DISCORD_TOKEN);
 }
 
-app.get("/", (req, res) => {
-  res.send("Hello world!");
-});
+app.use(express.static("public"));
 
 app.listen(3000, () => {
   console.log("Server running...");

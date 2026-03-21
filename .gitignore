@@ -142,3 +142,6 @@ vite.config.ts.timestamp-*
 
 # Drizzle migrations
 drizzle/
+
+# Bundle
+public/
