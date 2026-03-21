@@ -2,8 +2,6 @@ import { DiscordSDK } from "@discord/embedded-app-sdk";
 
 const id = import.meta.env.VITE_DISCORD_CLIENT_ID;
 
-document.body.innerHTML = "wow";
-
 if (id == null) {
   throw new Error("Client ID required");
 }
