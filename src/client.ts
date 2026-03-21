@@ -2,6 +2,8 @@ import { DiscordSDK } from "@discord/embedded-app-sdk";
 
 const id = import.meta.env.VITE_DISCORD_CLIENT_ID;
 
+document.body.innerHTML = "wow";
+
 if (id == null) {
   throw new Error("Client ID required");
 }
@@ -42,6 +44,9 @@ const { access_token } = body;
 const auth = await discordSdk.commands.authenticate({ access_token });
 
 // ✅ User ID is here
-console.log(auth.user.id); // e.g. "123456789012345678"
-console.log(auth.user.username); // e.g. "serj"
-console.log(auth.user.avatar); // avatar hash
+// console.log(auth.user.id); // e.g. "123456789012345678"
+// console.log(auth.user.username); // e.g. "serj"
+// console.log(auth.user.avatar); // avatar hash
+const output = document.createElement("p");
+output.innerHTML = `${auth.user.id} ${auth.user.username}`;
+document.body.appendChild(output);
