@@ -30,9 +30,12 @@ async function everything() {
     print("code ready");
 
     // 2. Exchange code for token (via your backend)
-    const res = await fetch("/oauth2/token", {
+    const res = await fetch("https://discord.com/api/v10/oauth2/token", {
       method: "POST",
-      body: JSON.stringify({ code }),
+      body: JSON.stringify({
+        grant_type: "urn:ietf:params:oauth:grant-type:device_code",
+        device_code: code,
+      }),
     });
 
     print("token ready");
