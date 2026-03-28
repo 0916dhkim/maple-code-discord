@@ -30,13 +30,13 @@ async function everything() {
     print("code ready");
 
     // 2. Exchange code for token (via your backend)
-    const res = await fetch("https://discord.com/api/v10/oauth2/token", {
-      method: "POST",
-      body: JSON.stringify({
-        grant_type: "urn:ietf:params:oauth:grant-type:device_code",
-        device_code: code,
-      }),
-    });
+    const res = await fetch(
+      "https://discord-activity.maplecode.dev/activity-token",
+      {
+        method: "POST",
+        body: JSON.stringify({ code }),
+      },
+    );
 
     print("token ready");
 
