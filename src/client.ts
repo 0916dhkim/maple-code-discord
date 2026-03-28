@@ -2,10 +2,68 @@ import { DiscordSDK } from "@discord/embedded-app-sdk";
 
 const id = import.meta.env.VITE_DISCORD_CLIENT_ID;
 
+let debugPanel: HTMLElement | null = null;
+let debugLog: HTMLElement | null = null;
+
+function ensureDebugPanel() {
+  if (debugPanel) return;
+
+  debugPanel = document.createElement("div");
+  Object.assign(debugPanel.style, {
+    position: "fixed",
+    bottom: "16px",
+    right: "16px",
+    zIndex: "9999",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-end",
+    gap: "8px",
+    fontFamily: "monospace",
+    fontSize: "13px",
+  });
+
+  debugLog = document.createElement("div");
+  Object.assign(debugLog.style, {
+    background: "rgba(0,0,0,0.85)",
+    color: "#d4f5a0",
+    borderRadius: "8px",
+    padding: "10px 14px",
+    maxWidth: "360px",
+    maxHeight: "260px",
+    overflowY: "auto",
+    display: "none",
+    whiteSpace: "pre-wrap",
+    wordBreak: "break-word",
+    lineHeight: "1.5",
+  });
+
+  const toggle = document.createElement("button");
+  toggle.textContent = "🪲 Debug";
+  Object.assign(toggle.style, {
+    background: "rgba(0,0,0,0.75)",
+    color: "#fff",
+    border: "none",
+    borderRadius: "20px",
+    padding: "6px 14px",
+    cursor: "pointer",
+    fontSize: "13px",
+  });
+  toggle.addEventListener("click", () => {
+    const hidden = debugLog!.style.display === "none";
+    debugLog!.style.display = hidden ? "block" : "none";
+  });
+
+  debugPanel.appendChild(debugLog);
+  debugPanel.appendChild(toggle);
+  document.body.appendChild(debugPanel);
+}
+
 function print(content: string) {
-  const output = document.createElement("p");
-  output.innerHTML = content;
-  document.body.appendChild(output);
+  ensureDebugPanel();
+  const line = document.createElement("div");
+  line.textContent = content;
+  debugLog!.appendChild(line);
+  debugLog!.scrollTop = debugLog!.scrollHeight;
 }
 
 async function everything() {
