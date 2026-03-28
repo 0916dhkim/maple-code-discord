@@ -34,6 +34,9 @@ async function everything() {
       "https://discord-activity.maplecode.dev/activity-token",
       {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ code }),
       },
     );
