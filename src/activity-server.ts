@@ -13,6 +13,12 @@ const discordTokenApiResponseSchema = z.object({
 export const _app = express();
 
 _app.use(express.json());
+_app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "*");
+  res.setHeader("Access-Control-Allow-Headers", "*");
+  next();
+});
 
 _app.post("/activity-token", async (req, res) => {
   try {
