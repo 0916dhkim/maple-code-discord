@@ -27,19 +27,16 @@ async function everything() {
       scope: ["identify", "guilds"],
     });
 
-    print("code ready");
+    print(`code ready : ${code}`);
 
     // 2. Exchange code for token (via your backend)
-    const res = await fetch(
-      "https://discord-activity.maplecode.dev/activity-token",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ code }),
+    const res = await fetch("/activity-token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+      body: JSON.stringify({ code }),
+    });
 
     print("token ready");
 
