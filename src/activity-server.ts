@@ -1,14 +1,14 @@
+import crypto from "node:crypto";
 import express from "express";
-import session from "express-session";
 import z from "zod";
 import { env } from "./env.js";
 
-declare module "express-session" {
-  interface SessionData {
-    userId?: string;
-    username?: string;
-  }
+interface Session {
+  userId: string;
+  username: string;
 }
+
+const sessions = new Map<string, Session>();
 
 const tokenRequestBodySchema = z.object({
   code: z.string(),
@@ -26,14 +26,6 @@ const discordUserApiResponseSchema = z.object({
 export const _app = express();
 
 _app.use(express.json());
-_app.use(
-  session({
-    secret: env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: { httpOnly: true, sameSite: "lax" },
-  })
-);
 _app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "*");
@@ -63,16 +55,17 @@ _app.post("/activity-token", async (req, res) => {
     const parsedBody = discordTokenApiResponseSchema.parse(body);
     const { access_token } = parsedBody;
 
-    // Fetch Discord user info and store in session
+    // Fetch Discord user info and create a session token
     const userRes = await fetch("https://discord.com/api/v10/users/@me", {
       headers: { Authorization: `Bearer ${access_token}` },
     });
     const user = discordUserApiResponseSchema.parse(await userRes.json());
-    req.session.userId = user.id;
-    req.session.username = user.username;
+    const sessionToken = crypto.randomUUID();
+    sessions.set(sessionToken, { userId: user.id, username: user.username });
 
     res.json({
       access_token,
+      session_token: sessionToken,
     });
   } catch (e) {
     console.error(e);
@@ -116,14 +109,16 @@ _app.get("/events", (req, res) => {
 });
 
 _app.post("/send-event", (req, res) => {
-  if (!req.session.userId) {
+  const token = req.query.token as string | undefined;
+  const userSession = token ? sessions.get(token) : undefined;
+  if (!userSession) {
     res.status(401).json({ error: "Not authenticated" });
     return;
   }
 
   const body = sendEventBodySchema.parse(req.body);
   const data = JSON.stringify({
-    username: req.session.username,
+    username: userSession.username,
     message: body.message,
     timestamp: Date.now(),
   });

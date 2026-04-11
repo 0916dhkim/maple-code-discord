@@ -66,6 +66,8 @@ function print(content: string) {
   debugLog!.scrollTop = debugLog!.scrollHeight;
 }
 
+let sessionToken: string | null = null;
+
 async function authenticate() {
   if (id == null) {
     throw new Error("Client ID required");
@@ -97,12 +99,16 @@ async function authenticate() {
     typeof body !== "object" ||
     body == null ||
     !("access_token" in body) ||
-    typeof body.access_token != "string"
+    typeof body.access_token != "string" ||
+    !("session_token" in body) ||
+    typeof body.session_token != "string"
   ) {
     throw new Error("Invalid body");
   }
 
-  const { access_token } = body;
+  const { access_token, session_token } = body;
+  sessionToken = session_token;
+
   const auth = await discordSdk.commands.authenticate({ access_token });
 
   print(`authenticated: ${auth.user.username}`);
@@ -133,11 +139,19 @@ async function sendEvent() {
   eventCount++;
   const message = `user action #${eventCount}`;
   print(`Sending: ${message}`);
-  await fetch("/send-event", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message }),
-  });
+  try {
+    const res = await fetch(`/send-event?token=${sessionToken}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message }),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      print(`Send failed (${res.status}): ${body}`);
+    }
+  } catch (e) {
+    print(`Send error: ${e}`);
+  }
 }
 
 const sendButton = document.getElementById("send-event") as HTMLButtonElement | null;
