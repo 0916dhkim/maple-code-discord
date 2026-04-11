@@ -124,5 +124,41 @@ async function everything() {
   }
 }
 
+function startSSE() {
+  print("SSE: connecting...");
+  const source = new EventSource("/events");
+
+  source.onopen = () => {
+    print("SSE: connected");
+  };
+
+  source.onmessage = (event) => {
+    print(`SSE: ${event.data}`);
+  };
+
+  source.onerror = () => {
+    print("SSE: error / closed");
+    source.close();
+  };
+}
+
+let eventCount = 0;
+
+async function sendEvent() {
+  eventCount++;
+  const message = `user action #${eventCount}`;
+  print(`Sending: ${message}`);
+  await fetch("/send-event", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message }),
+  });
+}
+
 const button = document.getElementById("everything");
 button?.addEventListener("click", everything);
+
+startSSE();
+
+const sendButton = document.getElementById("send-event");
+sendButton?.addEventListener("click", sendEvent);

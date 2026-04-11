@@ -54,6 +54,41 @@ _app.post("/activity-token", async (req, res) => {
   }
 });
 
+const sseClients = new Set<express.Response>();
+
+_app.get("/events", (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+
+  sseClients.add(res);
+
+  const heartbeat = setInterval(() => {
+    res.write(": heartbeat\n\n");
+  }, 15_000);
+
+  req.on("close", () => {
+    clearInterval(heartbeat);
+    sseClients.delete(res);
+  });
+});
+
+const sendEventBodySchema = z.object({
+  message: z.string(),
+});
+
+_app.post("/send-event", (req, res) => {
+  const body = sendEventBodySchema.parse(req.body);
+  const data = JSON.stringify({ message: body.message, timestamp: Date.now() });
+
+  for (const client of sseClients) {
+    client.write(`data: ${data}\n\n`);
+  }
+
+  res.json({ sent: sseClients.size });
+});
+
 _app.use(express.static("public"));
 
 export const app = _app;
