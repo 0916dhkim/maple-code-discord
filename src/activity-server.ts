@@ -1,6 +1,14 @@
 import express from "express";
+import session from "express-session";
 import z from "zod";
 import { env } from "./env.js";
+
+declare module "express-session" {
+  interface SessionData {
+    userId?: string;
+    username?: string;
+  }
+}
 
 const tokenRequestBodySchema = z.object({
   code: z.string(),
@@ -10,9 +18,22 @@ const discordTokenApiResponseSchema = z.object({
   access_token: z.string(),
 });
 
+const discordUserApiResponseSchema = z.object({
+  id: z.string(),
+  username: z.string(),
+});
+
 export const _app = express();
 
 _app.use(express.json());
+_app.use(
+  session({
+    secret: env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: { httpOnly: true, sameSite: "lax" },
+  })
+);
 _app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "*");
@@ -42,6 +63,14 @@ _app.post("/activity-token", async (req, res) => {
     const parsedBody = discordTokenApiResponseSchema.parse(body);
     const { access_token } = parsedBody;
 
+    // Fetch Discord user info and store in session
+    const userRes = await fetch("https://discord.com/api/v10/users/@me", {
+      headers: { Authorization: `Bearer ${access_token}` },
+    });
+    const user = discordUserApiResponseSchema.parse(await userRes.json());
+    req.session.userId = user.id;
+    req.session.username = user.username;
+
     res.json({
       access_token,
     });
@@ -54,7 +83,19 @@ _app.post("/activity-token", async (req, res) => {
   }
 });
 
-const sseClients = new Set<express.Response>();
+const sendEventBodySchema = z.object({
+  message: z.string(),
+});
+
+// EventEmitter-style: SSE clients just listen, POST broadcasts to all
+const { on, emit } = (() => {
+  type Listener = (data: string) => void;
+  const listeners = new Set<Listener>();
+  return {
+    on: (fn: Listener) => { listeners.add(fn); return () => listeners.delete(fn); },
+    emit: (data: string) => { for (const fn of listeners) fn(data); },
+  };
+})();
 
 _app.get("/events", (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
@@ -62,7 +103,7 @@ _app.get("/events", (req, res) => {
   res.setHeader("Connection", "keep-alive");
   res.flushHeaders();
 
-  sseClients.add(res);
+  const off = on((data) => res.write(`data: ${data}\n\n`));
 
   const heartbeat = setInterval(() => {
     res.write(": heartbeat\n\n");
@@ -70,23 +111,21 @@ _app.get("/events", (req, res) => {
 
   req.on("close", () => {
     clearInterval(heartbeat);
-    sseClients.delete(res);
+    off();
   });
-});
-
-const sendEventBodySchema = z.object({
-  message: z.string(),
 });
 
 _app.post("/send-event", (req, res) => {
   const body = sendEventBodySchema.parse(req.body);
-  const data = JSON.stringify({ message: body.message, timestamp: Date.now() });
+  const data = JSON.stringify({
+    username: req.session.username ?? "anonymous",
+    message: body.message,
+    timestamp: Date.now(),
+  });
 
-  for (const client of sseClients) {
-    client.write(`data: ${data}\n\n`);
-  }
+  emit(data);
 
-  res.json({ sent: sseClients.size });
+  res.json({ ok: true });
 });
 
 _app.use(express.static("public"));
