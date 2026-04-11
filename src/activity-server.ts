@@ -116,9 +116,14 @@ _app.get("/events", (req, res) => {
 });
 
 _app.post("/send-event", (req, res) => {
+  if (!req.session.userId) {
+    res.status(401).json({ error: "Not authenticated" });
+    return;
+  }
+
   const body = sendEventBodySchema.parse(req.body);
   const data = JSON.stringify({
-    username: req.session.username ?? "anonymous",
+    username: req.session.username,
     message: body.message,
     timestamp: Date.now(),
   });
